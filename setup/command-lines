@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# 0. Criando a Rede Personalizada
+docker network create --driver bridge --subnet 172.18.0.0/16 laboratoriojenkins_lab-snet-01
+
+# 1. Jenkins
+docker build -t laboratoriojenkins-jenkins -f ./builds/dockerfiles/Dockerfile.jenkins ./builds/dockerfiles && docker run -d --name jenkins --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.4 -p 8070:8080 -v ./volumes/jenkins-data:/var/jenkins_home:rw -v /var/run/docker.sock:/var/run/docker.sock laboratoriojenkins-jenkins
+
+docker run -d --name jenkins --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.4 -p 8008:8008 -p 50000:50000 -v ./volumes/jenkins-data:/var/jenkins_home:rw -v /var/run/docker.sock:/var/run/docker.sock laboratoriojenkins-jenkins
+
+# 2. PostgreSQL
+docker build -t laboratoriojenkins-postgresql -f ./builds/dockerfiles/Dockerfile.postgres ./builds/dockerfiles && docker run -d --name postgresql --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.6 -e POSTGRES_DB=sonar -e POSTGRES_USER=sonar -e POSTGRES_PASSWORD=sonar -e POSTGRES_ROOT_PASSWORD=Snar2024 -p 5432:5432 -v ./volumes/db-sonar:/var/lib/postgresql/data laboratoriojenkins-postgresql
+
+docker run -d --name postgresql --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.6 -e POSTGRES_DB=sonar -e POSTGRES_USER=sonar -e POSTGRES_PASSWORD=sonar -e POSTGRES_ROOT_PASSWORD=Snar2024 -p 5432:5432 -v ./volumes/db-sonar:/var/lib/postgresql/data laboratoriojenkins-postgresql
+
+# 3. OWASP ZAP
+docker build -t laboratoriojenkins-owaspzap -f ./builds/dockerfiles/Dockerfile.owaspzap ./builds/dockerfiles && docker run -d --name owaspzap --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.80 --restart unless-stopped -p 8080:8080 -v ./volumes/agent-data-owasp/:/root/ -v ./builds/configure/agent/ssh/sshd_config:/etc/ssh/sshd_config -v /var/run/docker.sock:/var/run/docker.sock -t laboratoriojenkins-owaspzap
+
+docker run -d --name owaspzap --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.80 --restart unless-stopped -p 8080:8080 -v ./volumes/agent-data-owasp/:/root/ -v ./builds/configure/agent/ssh/sshd_config:/etc/ssh/sshd_config -v /var/run/docker.sock:/var/run/docker.sock laboratoriojenkins-owaspzap
+
+# 4. SONAR Cube
+docker run --name sonar -p 9000:9000 -v ./../volumes/sonarqube/logs:/opt/sonarqube/logs -v ./../volumes/sonarqube/extensions:/opt/sonarqube/extensions --network laboratoriojenkins_laboratoriojenkins_lab-snet-01 --ip 172.18.0.5 -e SONAR_JDBC_URL=jdbc:postgresql://172.18.0.6:5432/sonar -e SONAR_JDBC_USERNAME=sonar -e SONAR_JDBC_PASSWORD=sonar -d sonarqube:9.9-community
+
+docker run -d --name sonar -p 9000:9000 -v ./../volumes/sonarqube/logs:/opt/sonarqube/logs -v ./../volumes/sonarqube/extensions:/opt/sonarqube/extensions --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.5 -e SONAR_JDBC_URL=jdbc:postgresql://172.18.0.6:5432/sonar -e SONAR_JDBC_USERNAME=sonar -e SONAR_JDBC_PASSWORD=sonar sonarqube:9.9-community
+
+# 3. Trivy
+docker run -d --name trivy -p 8070:8070 -p 22:22 -v ./volumes/agent-data-trivy/:/root/ -v ./:/home/ubuntu/laboratorio/ -v ./volumes/trivy-reports/:/home/ubuntu/trivy-reports -v ./builds/configure/agent/ssh/sshd_config:/etc/ssh/sshd_config -v /var/run/docker.sock:/var/run/docker.sock --network laboratoriojenkins_lab-snet-01 --ip 172.18.0.70 --restart unless-stopped laboratoriojenkins-trivy
