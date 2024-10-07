@@ -9,7 +9,7 @@ Este projeto é dedicado à criação de uma pipeline DevSecOps robusta e segura
 - **Jenkins**: Ferramenta de automação para integração contínua (CI) e entrega contínua (CD).
 - **Docker**: Contêineres para garantir que o software funcione de maneira consistente em diferentes ambientes.
 - **SonarQube**: Análise de código estático para garantir a qualidade e a segurança do código.
-- **Tryvi**: Scanner de vulnerabilidades para identificar e mitigar riscos de segurança.
+- **Trivy**: Scanner de vulnerabilidades para identificar e mitigar riscos de segurança.
 - **OWASP ZAP**: Ferramenta de teste de segurança para detectar vulnerabilidades em aplicações web.
 
 ## Objetivo 🎯
@@ -21,7 +21,7 @@ O objetivo deste repositório é fornecer uma solução completa para a automaç
 - **/jenkins**: Configurações e scripts para Jenkins.
 - **/docker**: Dockerfiles e configurações relacionadas.
 - **/sonarqube**: Configurações e regras de análise do SonarQube.
-- **/tryvi**: Scripts e relatórios de varredura de vulnerabilidades.
+- **/Trivy**: Scripts e relatórios de varredura de vulnerabilidades.
 - **/owaspzap**: Configurações e relatórios de testes de segurança.
 
 ## Como Começar 🚀
